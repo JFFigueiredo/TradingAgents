@@ -1,0 +1,544 @@
+[
+  {
+    "id": "control",
+    "name": "Control baseline (untuned)",
+    "chains": [
+      "solana"
+    ],
+    "description": "Frozen original-approach desk. Never tune this file; copy to variants/ for experiments."
+  },
+  {
+    "id": "anti_overshoot",
+    "name": "Anti stop-overshoot",
+    "chains": [
+      "solana"
+    ],
+    "description": "Deep pools + smaller size to reduce gap past -6%"
+  },
+  {
+    "id": "arb_control",
+    "name": "Arbitrum control",
+    "chains": [
+      "arbitrum"
+    ],
+    "description": "Arbitrum meme venues"
+  },
+  {
+    "id": "avalanche_control",
+    "name": "Avalanche control",
+    "chains": [
+      "avalanche"
+    ],
+    "description": "Baseline paper desk on avalanche"
+  },
+  {
+    "id": "avalanche_deep",
+    "name": "Avalanche deep liquidity",
+    "chains": [
+      "avalanche"
+    ],
+    "description": "Higher floors on avalanche"
+  },
+  {
+    "id": "avalanche_momentum",
+    "name": "Avalanche momentum",
+    "chains": [
+      "avalanche"
+    ],
+    "description": "Momentum/buy bias on avalanche"
+  },
+  {
+    "id": "base_control",
+    "name": "Base control",
+    "chains": [
+      "base"
+    ],
+    "description": "Same risk rules on Base (GoPlus safety)"
+  },
+  {
+    "id": "base_deep_liq",
+    "name": "Base deep liquidity",
+    "chains": [
+      "base"
+    ],
+    "description": "Base with higher liq/vol floors"
+  },
+  {
+    "id": "base_momentum",
+    "name": "Base momentum",
+    "chains": [
+      "base"
+    ],
+    "description": "Base + momentum/buy weights, score 0.62"
+  },
+  {
+    "id": "blast_control",
+    "name": "Blast control",
+    "chains": [
+      "blast"
+    ],
+    "description": "Baseline paper desk on blast"
+  },
+  {
+    "id": "blast_deep",
+    "name": "Blast deep liquidity",
+    "chains": [
+      "blast"
+    ],
+    "description": "Higher floors on blast"
+  },
+  {
+    "id": "blast_momentum",
+    "name": "Blast momentum",
+    "chains": [
+      "blast"
+    ],
+    "description": "Momentum/buy bias on blast"
+  },
+  {
+    "id": "bsc_anti_tax",
+    "name": "BSC anti-tax",
+    "chains": [
+      "bsc"
+    ],
+    "description": "BSC with max 3% buy/sell tax"
+  },
+  {
+    "id": "bsc_control",
+    "name": "BSC control",
+    "chains": [
+      "bsc"
+    ],
+    "description": "BSC / Pancake memes via GoPlus"
+  },
+  {
+    "id": "bsc_scalp",
+    "name": "BSC scalp",
+    "chains": [
+      "bsc"
+    ],
+    "description": "Fast exits on BSC"
+  },
+  {
+    "id": "buy_pressure",
+    "name": "Buy-pressure gate",
+    "chains": [
+      "solana"
+    ],
+    "description": "Require \u226560% buys in 1h txns"
+  },
+  {
+    "id": "deep_liquidity",
+    "name": "Deep liquidity only",
+    "chains": [
+      "solana"
+    ],
+    "description": "Min $50k liquidity + $75k volume to fight stop overshoots on thin pools."
+  },
+  {
+    "id": "eth_control",
+    "name": "Ethereum control",
+    "chains": [
+      "ethereum"
+    ],
+    "description": "ETH mainnet memes \u2014 stricter liquidity"
+  },
+  {
+    "id": "eth_strict",
+    "name": "Ethereum strict",
+    "chains": [
+      "ethereum"
+    ],
+    "description": "Very selective ETH: score 0.68, top10\u226412%"
+  },
+  {
+    "id": "eth_wide_trail",
+    "name": "ETH wide trail",
+    "chains": [
+      "ethereum"
+    ],
+    "description": "Let ETH winners run"
+  },
+  {
+    "id": "higher_volume",
+    "name": "Higher volume gate",
+    "chains": [
+      "solana"
+    ],
+    "description": "Require $100k 1h volume to cut thin-pool stop overshoots."
+  },
+  {
+    "id": "linea_control",
+    "name": "Linea control",
+    "chains": [
+      "linea"
+    ],
+    "description": "Baseline paper desk on linea"
+  },
+  {
+    "id": "linea_deep",
+    "name": "Linea deep liquidity",
+    "chains": [
+      "linea"
+    ],
+    "description": "Higher floors on linea"
+  },
+  {
+    "id": "linea_momentum",
+    "name": "Linea momentum",
+    "chains": [
+      "linea"
+    ],
+    "description": "Momentum/buy bias on linea"
+  },
+  {
+    "id": "low_concentration",
+    "name": "Low holder concentration",
+    "chains": [
+      "solana"
+    ],
+    "description": "Top10 \u226410% excluding pools"
+  },
+  {
+    "id": "mid_age_sweet",
+    "name": "Mid-age sweet spot",
+    "chains": [
+      "solana"
+    ],
+    "description": "Avoid brand-new rugs and stale bags: 4\u201336h only"
+  },
+  {
+    "id": "momentum_bias",
+    "name": "Momentum + buy pressure bias",
+    "chains": [
+      "solana"
+    ],
+    "description": "Higher weight on momentum/buy-sell, score gate 0.65, prefer fresher coins."
+  },
+  {
+    "id": "multi_all",
+    "name": "All chains lab",
+    "chains": [
+      "solana",
+      "base",
+      "bsc",
+      "ethereum",
+      "arbitrum"
+    ],
+    "description": "solana+base+bsc+eth+arb \u2014 rate-limit friendly pacing"
+  },
+  {
+    "id": "multi_alt_evm",
+    "name": "Alt EVM basket",
+    "chains": [
+      "polygon",
+      "avalanche",
+      "linea"
+    ],
+    "description": "polygon+avalanche+linea"
+  },
+  {
+    "id": "multi_l2",
+    "name": "Multi L2 (Base + Arbitrum)",
+    "chains": [
+      "base",
+      "arbitrum"
+    ],
+    "description": "Shared paper book across Base and Arbitrum"
+  },
+  {
+    "id": "multi_l2_plus",
+    "name": "L2 plus",
+    "chains": [
+      "base",
+      "arbitrum",
+      "optimism",
+      "blast"
+    ],
+    "description": "base+arb+op+blast"
+  },
+  {
+    "id": "multi_meme_hot",
+    "name": "Hot meme basket",
+    "chains": [
+      "solana",
+      "base",
+      "bsc"
+    ],
+    "description": "solana+base+bsc"
+  },
+  {
+    "id": "multi_sol_base",
+    "name": "Solana + Base",
+    "chains": [
+      "solana",
+      "base"
+    ],
+    "description": "Two hottest meme chains, shared equity"
+  },
+  {
+    "id": "multi_universe",
+    "name": "Full universe",
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "arbitrum",
+      "polygon",
+      "avalanche",
+      "optimism",
+      "blast",
+      "linea"
+    ],
+    "description": "All registered chains \u2014 slow scout, shared book"
+  },
+  {
+    "id": "optimism_control",
+    "name": "Optimism control",
+    "chains": [
+      "optimism"
+    ],
+    "description": "Baseline paper desk on optimism"
+  },
+  {
+    "id": "optimism_deep",
+    "name": "Optimism deep liquidity",
+    "chains": [
+      "optimism"
+    ],
+    "description": "Higher floors on optimism"
+  },
+  {
+    "id": "optimism_momentum",
+    "name": "Optimism momentum",
+    "chains": [
+      "optimism"
+    ],
+    "description": "Momentum/buy bias on optimism"
+  },
+  {
+    "id": "polygon_control",
+    "name": "Polygon control",
+    "chains": [
+      "polygon"
+    ],
+    "description": "Baseline paper desk on polygon"
+  },
+  {
+    "id": "polygon_deep",
+    "name": "Polygon deep liquidity",
+    "chains": [
+      "polygon"
+    ],
+    "description": "Higher floors on polygon"
+  },
+  {
+    "id": "polygon_momentum",
+    "name": "Polygon momentum",
+    "chains": [
+      "polygon"
+    ],
+    "description": "Momentum/buy bias on polygon"
+  },
+  {
+    "id": "pumpswap_graduated",
+    "name": "PumpSwap graduated only",
+    "chains": [
+      "solana"
+    ],
+    "description": "pumpswap + raydium, no pumpfun bonding"
+  },
+  {
+    "id": "raydium_only",
+    "name": "Raydium-only Solana",
+    "chains": [
+      "solana"
+    ],
+    "description": "Skip pump ecosystem entirely"
+  },
+  {
+    "id": "scalp_fast",
+    "name": "Scalp fast",
+    "chains": [
+      "solana"
+    ],
+    "description": "Earlier trail, shorter hold, tighter stop"
+  },
+  {
+    "id": "score_loose",
+    "name": "Loose score 0.50",
+    "chains": [
+      "solana"
+    ],
+    "description": "More flow, lower bar \u2014 measure if volume helps"
+  },
+  {
+    "id": "score_strict",
+    "name": "Strict score 0.70",
+    "chains": [
+      "solana"
+    ],
+    "description": "Fewer trades, higher conviction"
+  },
+  {
+    "id": "size_up_few",
+    "name": "Size up, few positions",
+    "chains": [
+      "solana"
+    ],
+    "description": "12% equity, max 2 opens \u2014 concentrated bets"
+  },
+  {
+    "id": "sol_score_thr55",
+    "name": "Solana score thr55",
+    "chains": [
+      "solana"
+    ],
+    "description": "Score-threshold sweep"
+  },
+  {
+    "id": "sol_score_thr68",
+    "name": "Solana score thr68",
+    "chains": [
+      "solana"
+    ],
+    "description": "Score-threshold sweep"
+  },
+  {
+    "id": "sol_score_thr75",
+    "name": "Solana score thr75",
+    "chains": [
+      "solana"
+    ],
+    "description": "Score-threshold sweep"
+  },
+  {
+    "id": "sol_size10x3",
+    "name": "Solana size10x3",
+    "chains": [
+      "solana"
+    ],
+    "description": "Position sizing sweep"
+  },
+  {
+    "id": "sol_size15x2",
+    "name": "Solana size15x2",
+    "chains": [
+      "solana"
+    ],
+    "description": "Position sizing sweep"
+  },
+  {
+    "id": "sol_size5x5",
+    "name": "Solana size5x5",
+    "chains": [
+      "solana"
+    ],
+    "description": "Position sizing sweep"
+  },
+  {
+    "id": "sol_stop3_trail5",
+    "name": "Solana stop3_trail5",
+    "chains": [
+      "solana"
+    ],
+    "description": "Exit-grid experiment on Solana"
+  },
+  {
+    "id": "sol_stop5_trail10",
+    "name": "Solana stop5_trail10",
+    "chains": [
+      "solana"
+    ],
+    "description": "Exit-grid experiment on Solana"
+  },
+  {
+    "id": "sol_stop8_trail15",
+    "name": "Solana stop8_trail15",
+    "chains": [
+      "solana"
+    ],
+    "description": "Exit-grid experiment on Solana"
+  },
+  {
+    "id": "tighter_stops",
+    "name": "Tighter hard stop + earlier trail",
+    "chains": [
+      "solana"
+    ],
+    "description": "Hard stop -4%, trail activates at +8% with 5% drawdown \u2014 fewer gap blowups, smaller winners."
+  },
+  {
+    "id": "wide_trail",
+    "name": "Wide trail \u2014 let winners run",
+    "chains": [
+      "solana"
+    ],
+    "description": "Trail activates +20%, drawdown 10%, hold up to 12h"
+  },
+  {
+    "id": "winner_like_avalanche",
+    "name": "Winner-like on Avalanche",
+    "chains": [
+      "avalanche"
+    ],
+    "description": "Winner profile thresholds ported to this chain"
+  },
+  {
+    "id": "winner_like_base",
+    "name": "Winner-like on Base",
+    "chains": [
+      "base"
+    ],
+    "description": "Apply Solana winner profile thresholds on Base"
+  },
+  {
+    "id": "winner_like_blast",
+    "name": "Winner-like on Blast",
+    "chains": [
+      "blast"
+    ],
+    "description": "Winner profile thresholds ported to this chain"
+  },
+  {
+    "id": "winner_like_linea",
+    "name": "Winner-like on Linea",
+    "chains": [
+      "linea"
+    ],
+    "description": "Winner profile thresholds ported to this chain"
+  },
+  {
+    "id": "winner_like_optimism",
+    "name": "Winner-like on Optimism",
+    "chains": [
+      "optimism"
+    ],
+    "description": "Winner profile thresholds ported to this chain"
+  },
+  {
+    "id": "winner_like_polygon",
+    "name": "Winner-like on Polygon",
+    "chains": [
+      "polygon"
+    ],
+    "description": "Winner profile thresholds ported to this chain"
+  },
+  {
+    "id": "winner_like_v1",
+    "name": "Winner-like (from first control fills)",
+    "chains": [
+      "solana"
+    ],
+    "description": "Mirrors open winners: vol\u226580k, liq\u226540k, top10\u226412%, age 2\u201324h, buy share\u22650.55"
+  },
+  {
+    "id": "young_only",
+    "name": "Young only",
+    "chains": [
+      "solana"
+    ],
+    "description": "Max age 6h \u2014 catch early momentum"
+  }
+]

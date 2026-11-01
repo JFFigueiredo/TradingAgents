@@ -1,0 +1,16 @@
+{
+  "notes": [
+    "min_liquidity_usd from winners\u224897595",
+    "min_volume_1h_usd from winners\u2248256818",
+    "max_top10 from winners\u22487.0",
+    "age window around winners\u224817.1h",
+    "score_threshold from winners\u22480.67",
+    "chains from sample: {'solana': 3}"
+  ],
+  "sample_sizes": {
+    "wins": 0,
+    "losses": 0,
+    "opens": 3,
+    "used": 3
+  }
+}

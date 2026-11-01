@@ -1,0 +1,42 @@
+{
+  "id": "eth_control",
+  "name": "Ethereum control",
+  "description": "ETH mainnet memes \u2014 stricter liquidity",
+  "chains": [
+    "ethereum"
+  ],
+  "starting_cash_usd": 280.0,
+  "scout_interval_sec": 30,
+  "reprice_interval_sec": 5,
+  "max_pair_age_hours": 72,
+  "gecko_new_pool_pages": 1,
+  "min_volume_1h_usd": 100000,
+  "min_liquidity_usd": 80000,
+  "rugcheck_rpc_cap_per_cycle": 12,
+  "soft_reject_cooldown_min": 15,
+  "min_lp_locked_pct": 85,
+  "max_top10_holder_pct": 20,
+  "score_threshold": 0.6,
+  "score_weights": {
+    "liquidity": 0.25,
+    "momentum": 0.2,
+    "holders": 0.2,
+    "age": 0.15,
+    "buy_sell": 0.2
+  },
+  "max_position_pct_equity": 0.08,
+  "max_open_positions": 3,
+  "slippage_pct": 1.0,
+  "dex_fee_pct": 0.3,
+  "network_fee_usd": 0.5,
+  "price_impact_coeff": 1.0,
+  "hard_stop_pct": -6.0,
+  "trail_activate_pct": 12.0,
+  "trail_drawdown_pct": 6.0,
+  "max_hold_minutes": 360,
+  "rug_liquidity_drop_pct": 60.0,
+  "revenge_cooldown_min": 20,
+  "http_timeout_sec": 12,
+  "http_max_retries": 3,
+  "max_tax_pct": 5
+}
