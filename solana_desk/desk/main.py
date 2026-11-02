@@ -73,22 +73,37 @@ def run(argv: list[str] | None = None) -> int:
     reprice_every = float(cfg.get("reprice_interval_sec", 5))
     last_scout = 0.0
     last_dash = 0.0
+    last_reprice = [0.0]
+
+    def manage_positions() -> None:
+        if state.get("positions"):
+            risk.reprice_and_manage(http, cfg, state, state_path, desk_log)
+            save_state(state_path, state)
+        last_reprice[0] = time.time()
+
+    def tick() -> None:
+        # Scout + filter can take minutes under 429 backoff; keep stops live meanwhile.
+        if state.get("positions") and (time.time() - last_reprice[0]) >= reprice_every:
+            try:
+                manage_positions()
+            except Exception as exc:  # noqa: BLE001
+                desk_log.error(f"in-scout reprice error (continuing): {exc}")
+
+    on_tick = tick if cfg.get("reprice_during_scout") else None
 
     while True:
         loop_start = time.time()
         try:
             # Risk first: never stop managing open positions
-            if state.get("positions"):
-                risk.reprice_and_manage(http, cfg, state, state_path, desk_log)
-                save_state(state_path, state)
+            manage_positions()
 
             if (time.time() - last_scout) >= scout_every:
                 last_scout = time.time()
                 try:
-                    candidates = scout.run_scout(http, cfg)
+                    candidates = scout.run_scout(http, cfg, on_tick=on_tick)
                     bump(state, "pairs_scanned", len(candidates))
                     desk_log.info(f"scout candidates={len(candidates)}")
-                    passed = filt.run_filter(http, cfg, state, candidates)
+                    passed = filt.run_filter(http, cfg, state, candidates, on_tick=on_tick)
                     scored = analyst.run_analyst(cfg, state, passed)
                     executor.try_entries(cfg, state, scored, state_path, desk_log)
                     save_state(state_path, state)

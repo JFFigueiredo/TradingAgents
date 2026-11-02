@@ -7,6 +7,7 @@ import uuid
 from typing import Any
 
 from desk.logging_util import utc_now_iso
+from desk.stages.filter import _mem_key, remember
 from desk.state import bump, equity_usd, save_state
 
 log = logging.getLogger("desk.executor")
@@ -151,6 +152,10 @@ def try_entries(
                 "age_hours": cand.get("age_hours"),
                 "buys_1h": cand.get("buys_1h"),
                 "sells_1h": cand.get("sells_1h"),
+                "buys_5m": cand.get("buys_5m"),
+                "sells_5m": cand.get("sells_5m"),
+                "price_change_5m_pct": cand.get("price_change_5m_pct"),
+                "price_change_1h_pct": cand.get("price_change_1h_pct"),
                 "buy_share": (
                     float(cand["buys_1h"]) / (float(cand["buys_1h"]) + float(cand["sells_1h"]))
                     if (cand.get("buys_1h") is not None and cand.get("sells_1h") is not None
@@ -194,11 +199,17 @@ def close_position(
     desk_log,
     *,
     stop_overshoot: bool = False,
+    fraction: float = 1.0,
 ) -> dict[str, Any]:
-    fill = simulate_sell_fill(decision_price, float(pos["tokens"]), liquidity_usd, cfg)
+    fraction = max(0.0, min(1.0, float(fraction)))
+    partial = fraction < 1.0
+    tokens = float(pos["tokens"]) * fraction
+    cost = float(pos["cost_usd"]) * fraction
+    entry_fees = float(pos.get("entry_fees_usd") or 0) * fraction
+    fill = simulate_sell_fill(decision_price, tokens, liquidity_usd, cfg)
     state["cash_usd"] = float(state["cash_usd"]) + fill["total_credit_usd"]
-    pnl = fill["total_credit_usd"] - float(pos["cost_usd"])
-    pnl_pct = (pnl / float(pos["cost_usd"]) * 100.0) if pos["cost_usd"] else 0.0
+    pnl = fill["total_credit_usd"] - cost
+    pnl_pct = (pnl / cost * 100.0) if cost else 0.0
     trade = {
         "id": pos["id"],
         "mint": pos["mint"],
@@ -211,7 +222,7 @@ def close_position(
         "entry_fill_price": pos.get("entry_fill_price"),
         "exit_decision_price": fill["decision_price"],
         "exit_fill_price": fill["fill_price"],
-        "cost_usd": pos.get("cost_usd"),
+        "cost_usd": cost,
         "proceeds_usd": fill["total_credit_usd"],
         "pnl_usd": pnl,
         "pnl_pct": pnl_pct,
@@ -220,14 +231,27 @@ def close_position(
         "hold_minutes": (time.time() - float(pos.get("opened_ts") or time.time())) / 60.0,
         "stop_overshoot": stop_overshoot,
         "peak_price": pos.get("peak_price"),
-        "fees_usd": float(pos.get("entry_fees_usd") or 0)
-        + fill["dex_fee_usd"]
-        + fill["network_fee_usd"],
+        "fees_usd": entry_fees + fill["dex_fee_usd"] + fill["network_fee_usd"],
+        "chain": pos.get("chain"),
+        "partial": partial,
     }
     state.setdefault("closed_trades", []).append(trade)
-    state["positions"] = [p for p in state.get("positions", []) if p["id"] != pos["id"]]
+    if partial:
+        pos["tokens"] = float(pos["tokens"]) - tokens
+        pos["cost_usd"] = float(pos["cost_usd"]) - cost
+        pos["entry_fees_usd"] = float(pos.get("entry_fees_usd") or 0) - entry_fees
+        pos["mark_value_usd"] = pos["tokens"] * float(pos.get("mark_price") or decision_price)
+    else:
+        state["positions"] = [p for p in state.get("positions", []) if p["id"] != pos["id"]]
     if pnl < 0:
         state["last_loss_ts"] = time.time()
+    block_h = cfg.get("loss_reentry_block_hours")
+    if block_h is not None and not partial and pnl < 0:
+        key = _mem_key({"chain": pos.get("chain"), "mint": pos.get("mint")})
+        if reason == "rug_liquidity_drop":
+            remember(state, key, "hard", "rugged_on_us", 0)
+        else:
+            remember(state, key, "soft", f"lost_on_us:{reason}", float(block_h) * 60.0)
     if stop_overshoot:
         bump(state, "stop_overshoots")
     desk_log.event("fill_sell", f"SELL {pos['mint']} {reason} pnl={pnl:.2f}", trade=trade)

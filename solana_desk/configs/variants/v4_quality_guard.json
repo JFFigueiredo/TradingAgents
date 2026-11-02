@@ -1,0 +1,75 @@
+{
+  "id": "v4_quality_guard",
+  "name": "v4 quality + guard",
+  "description": "v3_quality_guard with breakeven lock +3% after +6%",
+  "chains": [
+    "solana"
+  ],
+  "starting_cash_usd": 280.0,
+  "scout_interval_sec": 30,
+  "reprice_interval_sec": 5,
+  "max_pair_age_hours": 72,
+  "gecko_new_pool_pages": 2,
+  "gecko_dexes": [
+    "pumpswap",
+    "raydium",
+    "raydium-clmm",
+    "raydium-launchlab",
+    "pump-fun"
+  ],
+  "allowed_dex_families": [
+    "pumpfun",
+    "pumpswap",
+    "raydium"
+  ],
+  "reject_pre_graduation_pumpfun": true,
+  "min_volume_1h_usd": 150000,
+  "min_liquidity_usd": 50000,
+  "rugcheck_rpc_cap_per_cycle": 12,
+  "soft_reject_cooldown_min": 15,
+  "min_lp_locked_pct": 95,
+  "max_top10_holder_pct": 20,
+  "score_threshold": 0.6,
+  "score_weights": {
+    "liquidity": 0.25,
+    "momentum": 0.2,
+    "holders": 0.2,
+    "age": 0.15,
+    "buy_sell": 0.2
+  },
+  "max_position_pct_equity": 0.08,
+  "max_open_positions": 5,
+  "slippage_pct": 1.0,
+  "dex_fee_pct": 0.3,
+  "network_fee_usd": 0.02,
+  "price_impact_coeff": 1.0,
+  "hard_stop_pct": -6.0,
+  "trail_activate_pct": 12.0,
+  "trail_drawdown_pct": 6.0,
+  "max_hold_minutes": 360,
+  "rug_liquidity_drop_pct": 60.0,
+  "revenge_cooldown_min": 20,
+  "http_timeout_sec": 12,
+  "http_max_retries": 3,
+  "reprice_during_scout": true,
+  "breakeven_activate_pct": 6.0,
+  "breakeven_lock_pct": 3.0,
+  "trail_tiers": [
+    [
+      6,
+      4
+    ],
+    [
+      15,
+      7
+    ],
+    [
+      40,
+      12
+    ]
+  ],
+  "min_buy_share_1h": 0.62,
+  "loss_reentry_block_hours": 6,
+  "min_price_change_1h_pct": -20,
+  "min_price_change_6h_pct": -40
+}

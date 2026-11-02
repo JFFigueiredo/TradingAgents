@@ -57,7 +57,7 @@ def summarize_variant(name: str, state: dict[str, Any]) -> dict[str, Any]:
     eq = cash
     for p in state.get("positions") or []:
         eq += float(p.get("mark_value_usd") or p.get("cost_usd") or 0)
-    closed = list(state.get("closed_trades") or [])
+    closed = [t for t in state.get("closed_trades") or [] if not t.get("partial")]
     wins = [t for t in closed if float(t.get("pnl_usd") or 0) >= 0]
     losses = [t for t in closed if float(t.get("pnl_usd") or 0) < 0]
     snap_keys = ("liquidity_usd", "volume_1h_usd", "top10_pct", "age_hours")
@@ -114,6 +114,8 @@ def cross_winner_hints(rows: list[dict[str, Any]]) -> list[str]:
     all_losses: list[dict] = []
     for _name, state in _load_states():
         for t in state.get("closed_trades") or []:
+            if t.get("partial"):
+                continue
             if float(t.get("pnl_usd") or 0) >= 0:
                 all_wins.append(t)
             else:

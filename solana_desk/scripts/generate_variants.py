@@ -568,6 +568,125 @@ def main() -> None:
         ]
     )
 
+    # --- Wave 3 (v2): live stops during scout + exit management + entry timing ---
+    # 107/145 closes were hard stops (−$372) vs trailing +$73; 30 stopped trades had been ≥+6% first.
+    fast = dict(reprice_during_scout=True)
+    be = dict(breakeven_activate_pct=5.0, breakeven_lock_pct=1.5)
+    tiers = dict(trail_tiers=[[6, 4], [15, 7], [40, 12]])
+    no_chase = dict(max_price_change_1h_pct=100, min_price_change_5m_pct=0.0, min_buy_share_5m=0.55)
+    quality = dict(min_volume_1h_usd=150000, min_liquidity_usd=50000, min_buy_share_1h=0.62)
+    partial_tp = dict(take_profit_pct=12.0, take_profit_fraction=0.5)
+    stale = dict(no_progress_minutes=20, no_progress_min_peak_pct=2.0)
+    v2_evm = dict(gecko_new_pool_pages=1, min_lp_locked_pct=80, max_tax_pct=8, scout_interval_sec=40)
+
+    specs.extend(
+        [
+            mk("v2_fastrisk", "v2 fast risk", "Control + reprice during scout (isolates the stop-lag fix)",
+               chains=["solana"], **fast),
+            mk("v2_breakeven", "v2 breakeven", "Fast risk + stop moves to +1.5% after +5%",
+               chains=["solana"], **fast, **be),
+            mk("v2_tiered", "v2 tiered trail", "Fast risk + breakeven + trail 6/4, 15/7, 40/12",
+               chains=["solana"], **fast, **be, **tiers),
+            mk("v2_partial_tp", "v2 partial TP", "v2_tiered + sell half at +12%, runner trails",
+               chains=["solana"], **fast, **be, **tiers, **partial_tp),
+            mk("v2_no_chase", "v2 no chase", "v2_tiered + skip >100% 1h pumps, need green 5m and 55% 5m buys",
+               chains=["solana"], **fast, **be, **tiers, **no_chase),
+            mk("v2_no_progress", "v2 no progress", "v2_tiered + exit after 20m if never +2%",
+               chains=["solana"], **fast, **be, **tiers, **stale),
+            mk("v2_quality", "v2 quality", "v2_tiered + vol≥150k, liq≥50k, 1h buy share≥62%",
+               chains=["solana"], **fast, **be, **tiers, **quality),
+            mk("v2_combo", "v2 combo", "All v2 levers on Solana",
+               chains=["solana"], **fast, **be, **tiers, **no_chase, **quality, **partial_tp, **stale),
+            mk("v2_scalp_be", "v2 scalp breakeven", "Early lock (+3→+1%), tight tiers, −5% stop",
+               chains=["solana"], **fast, hard_stop_pct=-5.0,
+               breakeven_activate_pct=3.0, breakeven_lock_pct=1.0,
+               trail_tiers=[[4, 3], [10, 5], [30, 10]], **no_chase),
+            mk("v2_combo_sol_base", "v2 combo Sol+Base", "v2 combo on solana+base (best W/L basket)",
+               chains=["solana", "base"], gecko_new_pool_pages=1, min_lp_locked_pct=90, scout_interval_sec=45,
+               **fast, **be, **tiers, **no_chase, **partial_tp, **stale,
+               min_volume_1h_usd=100000, min_liquidity_usd=40000, min_buy_share_1h=0.6),
+            mk("v2_eth_wide", "v2 ETH wide", "eth_wide_trail (only green desk) + fast risk + breakeven",
+               chains=["ethereum"], gecko_new_pool_pages=1, min_volume_1h_usd=120000, min_liquidity_usd=100000,
+               trail_activate_pct=20.0, trail_drawdown_pct=10.0, max_hold_minutes=720, max_tax_pct=5,
+               min_lp_locked_pct=85, network_fee_usd=0.50, max_open_positions=2,
+               **fast, breakeven_activate_pct=8.0, breakeven_lock_pct=2.0),
+            # EVM desks rejected ~95% on volume_low at Solana-sized floors; test chain-sized floors.
+            mk("v2_base_lowvol", "v2 Base low-vol", "Base with 15k/10k floors + v2 exits + no chase",
+               chains=["base"], min_volume_1h_usd=15000, min_liquidity_usd=10000,
+               **v2_evm, **fast, **be, **tiers, **no_chase, **stale),
+            mk("v2_bsc_lowvol", "v2 BSC low-vol", "BSC with 20k/10k floors + v2 exits + no chase",
+               chains=["bsc"], min_volume_1h_usd=20000, min_liquidity_usd=10000, max_tax_pct=5,
+               **{k: v for k, v in v2_evm.items() if k != "max_tax_pct"}, **fast, **be, **tiers, **no_chase, **stale),
+            mk("v2_evm_lowvol", "v2 EVM low-vol basket", "base+bsc+arbitrum at 15k/10k floors + v2 exits",
+               chains=["base", "bsc", "arbitrum"], min_volume_1h_usd=15000, min_liquidity_usd=10000,
+               rugcheck_rpc_cap_per_cycle=8, **v2_evm, **fast, **be, **tiers, **no_chase, **stale),
+        ]
+    )
+
+    # --- Wave 4 (v3): guards + entry styles that pick different tokens ---
+    # 107 trades were re-buys of one token (ANAKIN, −$120); XTO was bought after −92% in 1h and rugged (−$254).
+    guard = dict(loss_reentry_block_hours=6, min_price_change_1h_pct=-20, min_price_change_6h_pct=-40)
+    v2_combo_keys = dict(**fast, **be, **tiers, **no_chase, **quality, **partial_tp, **stale)
+
+    specs.extend(
+        [
+            mk("v3_control_guard", "v3 control + guard", "Control + re-entry block + crash floors only",
+               chains=["solana"], **guard),
+            mk("v3_tiered_guard", "v3 tiered + guard", "v2_tiered + guard (isolates the guard)",
+               chains=["solana"], **fast, **be, **tiers, **guard),
+            mk("v3_partial_guard", "v3 partial TP + guard", "v2_partial_tp + guard",
+               chains=["solana"], **fast, **be, **tiers, **partial_tp, **guard),
+            mk("v3_quality_guard", "v3 quality + guard", "v2_quality (best active v2) + guard",
+               chains=["solana"], **fast, **be, **tiers, **quality, **guard),
+            mk("v3_combo_guard", "v3 combo + guard", "v2_combo + guard",
+               chains=["solana"], **v2_combo_keys, **guard),
+            mk("v3_combo_sol_base_guard", "v3 combo Sol+Base + guard", "v2_combo_sol_base + guard",
+               chains=["solana", "base"], gecko_new_pool_pages=1, min_lp_locked_pct=90, scout_interval_sec=45,
+               **fast, **be, **tiers, **no_chase, **partial_tp, **stale, **guard,
+               min_volume_1h_usd=100000, min_liquidity_usd=40000, min_buy_share_1h=0.6),
+            mk("v3_trend_up", "v3 trend up", "Only steady uptrends: 1h +5..+60%, 6h green, 5m green",
+               chains=["solana"], **fast, **be, **tiers, **stale, loss_reentry_block_hours=6,
+               min_price_change_1h_pct=5, max_price_change_1h_pct=60, min_price_change_6h_pct=0,
+               min_price_change_5m_pct=0.0, min_buy_share_5m=0.55, min_volume_1h_usd=80000),
+            mk("v3_dip_buy", "v3 dip buy", "Pullback in an uptrend: 6h ≥+20%, 1h −15..0%, 5m turning up",
+               chains=["solana"], **fast, **be, **tiers, **stale, loss_reentry_block_hours=6,
+               min_price_change_6h_pct=20, min_price_change_1h_pct=-15, max_price_change_1h_pct=0,
+               min_price_change_5m_pct=0.5, min_buy_share_5m=0.55, min_volume_1h_usd=80000),
+            mk("v3_young_momo", "v3 young momentum", "Pools 1–6h old (away from the 15h+ cluster) + guard",
+               chains=["solana"], **fast, **be, **tiers, **stale, **guard,
+               min_pair_age_hours=1, max_pair_age_hours=6, min_volume_1h_usd=60000, min_liquidity_usd=25000,
+               max_price_change_1h_pct=150, min_buy_share_5m=0.55),
+            mk("v3_deep_few", "v3 deep & few", "Liq-weighted score, liq≥150k, 3 slots at 10% + guard",
+               chains=["solana"], **fast, **be, **tiers, **guard,
+               min_liquidity_usd=150000, min_volume_1h_usd=150000, max_open_positions=3,
+               max_position_pct_equity=0.10, score_threshold=0.65,
+               score_weights={"liquidity": 0.40, "momentum": 0.15, "holders": 0.20, "age": 0.10, "buy_sell": 0.15}),
+            # EVM v2 desks never traded: timing rules rejected the few tokens that cleared volume.
+            mk("v3_evm_open", "v3 EVM open", "base+bsc+arbitrum at 10k/8k floors; crash floor + re-entry block only",
+               chains=["base", "bsc", "arbitrum"], min_volume_1h_usd=10000, min_liquidity_usd=8000,
+               rugcheck_rpc_cap_per_cycle=8, **v2_evm, **fast, **be, **tiers, **stale, **guard),
+        ]
+    )
+
+    # --- Wave 5 (v4): breakeven lock above round-trip cost ---
+    # Slippage 1%/side + 0.3% fee/side ≈ 2.6% round trip, so a +1.5% lock still lost (11 exits, −$17).
+    be3 = dict(breakeven_activate_pct=6.0, breakeven_lock_pct=3.0)
+    specs.extend(
+        [
+            mk("v4_tiered_guard", "v4 tiered + guard", "v3_tiered_guard with breakeven lock +3% after +6%",
+               chains=["solana"], **fast, **be3, **tiers, **guard),
+            mk("v4_quality_guard", "v4 quality + guard", "v3_quality_guard with breakeven lock +3% after +6%",
+               chains=["solana"], **fast, **be3, **tiers, **quality, **guard),
+            mk("v4_combo_guard", "v4 combo + guard", "v3_combo_guard with breakeven lock +3% after +6%",
+               chains=["solana"], **{**v2_combo_keys, **be3}, **guard),
+            mk("v4_combo_sol_base_guard", "v4 combo Sol+Base + guard",
+               "v3_combo_sol_base_guard with breakeven lock +3% after +6%",
+               chains=["solana", "base"], gecko_new_pool_pages=1, min_lp_locked_pct=90, scout_interval_sec=45,
+               **fast, **be3, **tiers, **no_chase, **partial_tp, **stale, **guard,
+               min_volume_1h_usd=100000, min_liquidity_usd=40000, min_buy_share_1h=0.6),
+        ]
+    )
+
     for cfg in specs:
         write(cfg)
 

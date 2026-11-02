@@ -4,14 +4,13 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
 from desk.chains import dexscreener_ids, resolve_chains
 from desk.http_client import HttpClient
 from desk.sources import dexscreener, gecko
 
 log = logging.getLogger("desk.scout")
-_GECKO_GAP_SEC = 2.2
 
 
 def _parse_created(v: Any) -> datetime | None:
@@ -57,8 +56,13 @@ def _key(row: dict[str, Any]) -> str:
     return f"{chain}:{mint}".lower()
 
 
-def run_scout(http: HttpClient, cfg: dict[str, Any]) -> list[dict[str, Any]]:
+def run_scout(
+    http: HttpClient,
+    cfg: dict[str, Any],
+    on_tick: Callable[[], None] | None = None,
+) -> list[dict[str, Any]]:
     """Return enriched candidates deduped by chain:mint, age ≤ max hours when known."""
+    tick = on_tick or (lambda: None)
     max_age = float(cfg.get("max_pair_age_hours", 72))
     pages = int(cfg.get("gecko_new_pool_pages", 1 if len(resolve_chains(cfg)) > 1 else 2))
     # multi-chain: default 1 new-pool page to respect rate limits
@@ -104,14 +108,14 @@ def run_scout(http: HttpClient, cfg: dict[str, Any]) -> list[dict[str, Any]]:
             _add(gecko.fetch_new_pools(http, network, cid, pages=pages))
         except Exception as exc:  # noqa: BLE001
             log.warning("new_pools %s failed: %s", network, exc)
-        time.sleep(_GECKO_GAP_SEC)
+        tick()
 
         for dex in chain.get("gecko_dexes") or []:
             try:
                 _add(gecko.fetch_dex_pools(http, network, cid, dex, page=1))
             except Exception as exc:  # noqa: BLE001
                 log.warning("dex pools %s/%s failed: %s", network, dex, exc)
-            time.sleep(_GECKO_GAP_SEC)
+            tick()
 
     try:
         _add(dexscreener.fetch_token_profiles(http, allowed_dex))
@@ -119,18 +123,30 @@ def run_scout(http: HttpClient, cfg: dict[str, Any]) -> list[dict[str, Any]]:
         log.warning("profiles failed: %s", exc)
 
     now = datetime.now(timezone.utc)
+    batch: dict[tuple[str, str], dict[str, Any]] = {}
+    try:
+        batch = dexscreener.enrich_tokens_batch(
+            http,
+            [(str(r.get("chain") or ""), str(r.get("mint"))) for r in merged.values()],
+            source="dex.scan",
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("batch enrich failed: %s", exc)
+    tick()
     out: list[dict[str, Any]] = []
     for _k, row in merged.items():
         chain = str(row.get("chain") or "")
         mint = str(row.get("mint"))
-        enriched = None
+        enriched = batch.get((chain, mint))
         try:
-            enriched = dexscreener.enrich_token(
-                http,
-                mint,
-                preferred_chain=chain or None,
-                allowed_chains=allowed_dex,
-            )
+            if enriched is None and not chain:
+                tick()
+                enriched = dexscreener.enrich_token(
+                    http,
+                    mint,
+                    preferred_chain=None,
+                    allowed_chains=allowed_dex,
+                )
             if enriched:
                 for key, v in enriched.items():
                     if v is not None:

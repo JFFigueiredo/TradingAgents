@@ -470,6 +470,245 @@
     "description": "Hard stop -4%, trail activates at +8% with 5% drawdown \u2014 fewer gap blowups, smaller winners."
   },
   {
+    "id": "v2_base_lowvol",
+    "name": "v2 Base low-vol",
+    "chains": [
+      "base"
+    ],
+    "description": "Base with 15k/10k floors + v2 exits + no chase"
+  },
+  {
+    "id": "v2_breakeven",
+    "name": "v2 breakeven",
+    "chains": [
+      "solana"
+    ],
+    "description": "Fast risk + stop moves to +1.5% after +5%"
+  },
+  {
+    "id": "v2_bsc_lowvol",
+    "name": "v2 BSC low-vol",
+    "chains": [
+      "bsc"
+    ],
+    "description": "BSC with 20k/10k floors + v2 exits + no chase"
+  },
+  {
+    "id": "v2_combo",
+    "name": "v2 combo",
+    "chains": [
+      "solana"
+    ],
+    "description": "All v2 levers on Solana"
+  },
+  {
+    "id": "v2_combo_sol_base",
+    "name": "v2 combo Sol+Base",
+    "chains": [
+      "solana",
+      "base"
+    ],
+    "description": "v2 combo on solana+base (best W/L basket)"
+  },
+  {
+    "id": "v2_eth_wide",
+    "name": "v2 ETH wide",
+    "chains": [
+      "ethereum"
+    ],
+    "description": "eth_wide_trail (only green desk) + fast risk + breakeven"
+  },
+  {
+    "id": "v2_evm_lowvol",
+    "name": "v2 EVM low-vol basket",
+    "chains": [
+      "base",
+      "bsc",
+      "arbitrum"
+    ],
+    "description": "base+bsc+arbitrum at 15k/10k floors + v2 exits"
+  },
+  {
+    "id": "v2_fastrisk",
+    "name": "v2 fast risk",
+    "chains": [
+      "solana"
+    ],
+    "description": "Control + reprice during scout (isolates the stop-lag fix)"
+  },
+  {
+    "id": "v2_no_chase",
+    "name": "v2 no chase",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_tiered + skip >100% 1h pumps, need green 5m and 55% 5m buys"
+  },
+  {
+    "id": "v2_no_progress",
+    "name": "v2 no progress",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_tiered + exit after 20m if never +2%"
+  },
+  {
+    "id": "v2_partial_tp",
+    "name": "v2 partial TP",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_tiered + sell half at +12%, runner trails"
+  },
+  {
+    "id": "v2_quality",
+    "name": "v2 quality",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_tiered + vol\u2265150k, liq\u226550k, 1h buy share\u226562%"
+  },
+  {
+    "id": "v2_scalp_be",
+    "name": "v2 scalp breakeven",
+    "chains": [
+      "solana"
+    ],
+    "description": "Early lock (+3\u2192+1%), tight tiers, \u22125% stop"
+  },
+  {
+    "id": "v2_tiered",
+    "name": "v2 tiered trail",
+    "chains": [
+      "solana"
+    ],
+    "description": "Fast risk + breakeven + trail 6/4, 15/7, 40/12"
+  },
+  {
+    "id": "v3_combo_guard",
+    "name": "v3 combo + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_combo + guard"
+  },
+  {
+    "id": "v3_combo_sol_base_guard",
+    "name": "v3 combo Sol+Base + guard",
+    "chains": [
+      "solana",
+      "base"
+    ],
+    "description": "v2_combo_sol_base + guard"
+  },
+  {
+    "id": "v3_control_guard",
+    "name": "v3 control + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "Control + re-entry block + crash floors only"
+  },
+  {
+    "id": "v3_deep_few",
+    "name": "v3 deep & few",
+    "chains": [
+      "solana"
+    ],
+    "description": "Liq-weighted score, liq\u2265150k, 3 slots at 10% + guard"
+  },
+  {
+    "id": "v3_dip_buy",
+    "name": "v3 dip buy",
+    "chains": [
+      "solana"
+    ],
+    "description": "Pullback in an uptrend: 6h \u2265+20%, 1h \u221215..0%, 5m turning up"
+  },
+  {
+    "id": "v3_evm_open",
+    "name": "v3 EVM open",
+    "chains": [
+      "base",
+      "bsc",
+      "arbitrum"
+    ],
+    "description": "base+bsc+arbitrum at 10k/8k floors; crash floor + re-entry block only"
+  },
+  {
+    "id": "v3_partial_guard",
+    "name": "v3 partial TP + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_partial_tp + guard"
+  },
+  {
+    "id": "v3_quality_guard",
+    "name": "v3 quality + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_quality (best active v2) + guard"
+  },
+  {
+    "id": "v3_tiered_guard",
+    "name": "v3 tiered + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v2_tiered + guard (isolates the guard)"
+  },
+  {
+    "id": "v3_trend_up",
+    "name": "v3 trend up",
+    "chains": [
+      "solana"
+    ],
+    "description": "Only steady uptrends: 1h +5..+60%, 6h green, 5m green"
+  },
+  {
+    "id": "v3_young_momo",
+    "name": "v3 young momentum",
+    "chains": [
+      "solana"
+    ],
+    "description": "Pools 1\u20136h old (away from the 15h+ cluster) + guard"
+  },
+  {
+    "id": "v4_combo_guard",
+    "name": "v4 combo + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v3_combo_guard with breakeven lock +3% after +6%"
+  },
+  {
+    "id": "v4_combo_sol_base_guard",
+    "name": "v4 combo Sol+Base + guard",
+    "chains": [
+      "solana",
+      "base"
+    ],
+    "description": "v3_combo_sol_base_guard with breakeven lock +3% after +6%"
+  },
+  {
+    "id": "v4_quality_guard",
+    "name": "v4 quality + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v3_quality_guard with breakeven lock +3% after +6%"
+  },
+  {
+    "id": "v4_tiered_guard",
+    "name": "v4 tiered + guard",
+    "chains": [
+      "solana"
+    ],
+    "description": "v3_tiered_guard with breakeven lock +3% after +6%"
+  },
+  {
     "id": "wide_trail",
     "name": "Wide trail \u2014 let winners run",
     "chains": [

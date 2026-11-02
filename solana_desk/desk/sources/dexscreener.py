@@ -87,6 +87,40 @@ def enrich_token(
     return pair_to_candidate(p, mint)
 
 
+_BATCH_MAX = 30
+
+
+def enrich_tokens_batch(
+    http: HttpClient,
+    items: list[tuple[str, str]],
+    *,
+    source: str = "dex.batch",
+) -> dict[tuple[str, str], dict[str, Any]]:
+    """(chain, mint) -> candidate via /tokens/v1/{chain}/{a,b,...}; deepest pair where mint is the base token."""
+    by_chain: dict[str, list[str]] = {}
+    for chain, mint in items:
+        if chain and mint and mint not in by_chain.setdefault(chain, []):
+            by_chain[chain].append(mint)
+    out: dict[tuple[str, str], dict[str, Any]] = {}
+    for chain, mints in by_chain.items():
+        for i in range(0, len(mints), _BATCH_MAX):
+            chunk = mints[i : i + _BATCH_MAX]
+            data = http.get_json(f"{BASE}/tokens/v1/{chain}/{','.join(chunk)}", source=source)
+            wanted = {m.lower(): m for m in chunk}
+            best: dict[str, tuple[float, dict[str, Any]]] = {}
+            for p in _extract_pairs(data):
+                base = str((p.get("baseToken") or {}).get("address") or "").lower()
+                if base not in wanted:
+                    continue
+                liq = p.get("liquidity")
+                liq_usd = _f(liq.get("usd") if isinstance(liq, dict) else liq) or 0.0
+                if base not in best or liq_usd > best[base][0]:
+                    best[base] = (liq_usd, p)
+            for low, (_liq, p) in best.items():
+                out[(chain, wanted[low])] = pair_to_candidate(p, wanted[low])
+    return out
+
+
 def enrich_pair(http: HttpClient, chain: str, pair_address: str) -> dict[str, Any] | None:
     data = http.get_json(f"{BASE}/latest/dex/pairs/{chain}/{pair_address}", source="dex.pair")
     if not data or not isinstance(data, dict):
@@ -119,6 +153,7 @@ def pair_to_candidate(p: dict[str, Any], mint: str) -> dict[str, Any]:
     h1 = txns.get("h1") or {}
     buys = int(h1.get("buys") or 0)
     sells = int(h1.get("sells") or 0)
+    m5 = txns.get("m5") or {}
     pc = p.get("priceChange") or {}
     chain = str(p.get("chainId") or "").lower()
     if chain == "eth":
@@ -138,7 +173,11 @@ def pair_to_candidate(p: dict[str, Any], mint: str) -> dict[str, Any]:
         "liquidity_usd": liq_usd,
         "buys_1h": buys,
         "sells_1h": sells,
+        "buys_5m": int(m5.get("buys") or 0) if m5 else None,
+        "sells_5m": int(m5.get("sells") or 0) if m5 else None,
+        "price_change_5m_pct": _f(pc.get("m5")),
         "price_change_1h_pct": _f(pc.get("h1")),
+        "price_change_6h_pct": _f(pc.get("h6")),
         "holder_count": None,
         "url": p.get("url"),
     }

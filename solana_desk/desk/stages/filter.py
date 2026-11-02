@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import Any, Callable
 
 from desk.chains import chain_by_dexscreener, resolve_chains
 from desk.http_client import HttpClient
@@ -257,6 +257,57 @@ def _heavy_goplus(
     return _apply_holder_creator_rules(state, cand, parsed, cfg, mem, soft_min)
 
 
+def _entry_timing_ok(cfg: dict[str, Any], cand: dict[str, Any]) -> tuple[bool, str | None]:
+    """Optional short-term confirmation; every key is off unless set in the config."""
+    def num(key: str) -> float | None:
+        v = cand.get(key)
+        try:
+            return float(v) if v is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    max_1h = cfg.get("max_price_change_1h_pct")
+    min_1h = cfg.get("min_price_change_1h_pct")
+    if max_1h is not None or min_1h is not None:
+        chg = num("price_change_1h_pct")
+        if chg is None:
+            return False, "change_1h_unavailable"
+        if max_1h is not None and chg > float(max_1h):
+            return False, "chasing_1h_pump"
+        if min_1h is not None and chg < float(min_1h):
+            return False, "crashed_1h"
+
+    min_6h = cfg.get("min_price_change_6h_pct")
+    if min_6h is not None:
+        chg6 = num("price_change_6h_pct")
+        if chg6 is None:
+            return False, "change_6h_unavailable"
+        if chg6 < float(min_6h):
+            return False, "crashed_6h"
+
+    min_5m = cfg.get("min_price_change_5m_pct")
+    max_5m = cfg.get("max_price_change_5m_pct")
+    if min_5m is not None or max_5m is not None:
+        chg5 = num("price_change_5m_pct")
+        if chg5 is None:
+            return False, "change_5m_unavailable"
+        if min_5m is not None and chg5 < float(min_5m):
+            return False, "falling_5m"
+        if max_5m is not None and chg5 > float(max_5m):
+            return False, "chasing_5m_spike"
+
+    min_bs5 = cfg.get("min_buy_share_5m")
+    if min_bs5 is not None:
+        b, s = num("buys_5m"), num("sells_5m")
+        min_tx = float(cfg.get("min_txns_5m", 10))
+        if b is None or s is None or (b + s) < min_tx:
+            return False, "txns_5m_thin"
+        if b / (b + s) < float(min_bs5):
+            return False, "buy_share_5m_low"
+
+    return True, None
+
+
 def evaluate_candidate(
     http: HttpClient,
     cfg: dict[str, Any],
@@ -340,6 +391,11 @@ def evaluate_candidate(
             remember(state, mem, "soft", "buy_share_low", soft_min)
             return False, "soft", "buy_share_low"
 
+    ok, reason = _entry_timing_ok(cfg, cand)
+    if not ok:
+        remember(state, mem, "soft", reason, soft_min)
+        return False, "soft", reason
+
     if heavy_budget[0] <= 0:
         remember(state, mem, "soft", "heavy_budget_exhausted", soft_min)
         return False, "soft", "heavy_budget_exhausted"
@@ -364,11 +420,14 @@ def run_filter(
     cfg: dict[str, Any],
     state: dict[str, Any],
     candidates: list[dict[str, Any]],
+    on_tick: Callable[[], None] | None = None,
 ) -> list[dict[str, Any]]:
     cap = int(cfg.get("rugcheck_rpc_cap_per_cycle", 12))
     budget = [cap]
     passed: list[dict[str, Any]] = []
     for cand in candidates:
+        if on_tick:
+            on_tick()
         bump(state, "evaluations")
         ok, kind, reason = evaluate_candidate(http, cfg, state, cand, heavy_budget=budget)
         if ok:
