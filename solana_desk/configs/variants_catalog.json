@@ -709,6 +709,31 @@
     "description": "v3_tiered_guard with breakeven lock +3% after +6%"
   },
   {
+    "id": "v5_quality_runner",
+    "name": "v5 quality runner",
+    "chains": [
+      "solana"
+    ],
+    "description": "v5_runner + quality floors (vol\u2265150k, liq\u226550k, buy share\u226562%)"
+  },
+  {
+    "id": "v5_runner",
+    "name": "v5 runner",
+    "chains": [
+      "solana"
+    ],
+    "description": "v4_tiered_guard with earlier trail (4/3, 10/6, 25/12) so more trades lock gains"
+  },
+  {
+    "id": "v5_runner_sol_base",
+    "name": "v5 runner Sol+Base",
+    "chains": [
+      "solana",
+      "base"
+    ],
+    "description": "v5_runner on solana+base"
+  },
+  {
     "id": "wide_trail",
     "name": "Wide trail \u2014 let winners run",
     "chains": [

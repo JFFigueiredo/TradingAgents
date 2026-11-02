@@ -687,6 +687,50 @@ def main() -> None:
         ]
     )
 
+    # --- Wave 6 (v5): clones of the only desk printing profit so far (v4_tiered_guard) ---
+    # Bias harder toward trailing-stop exits (the only exit type netting positive lab-wide).
+    early_trail = dict(trail_tiers=[[4, 3], [10, 6], [25, 12]])
+    specs.extend(
+        [
+            mk(
+                "v5_runner",
+                "v5 runner",
+                "v4_tiered_guard with earlier trail (4/3, 10/6, 25/12) so more trades lock gains",
+                chains=["solana"],
+                **fast,
+                **be3,
+                **early_trail,
+                **guard,
+            ),
+            mk(
+                "v5_quality_runner",
+                "v5 quality runner",
+                "v5_runner + quality floors (vol≥150k, liq≥50k, buy share≥62%)",
+                chains=["solana"],
+                **fast,
+                **be3,
+                **early_trail,
+                **quality,
+                **guard,
+            ),
+            mk(
+                "v5_runner_sol_base",
+                "v5 runner Sol+Base",
+                "v5_runner on solana+base",
+                chains=["solana", "base"],
+                gecko_new_pool_pages=1,
+                min_lp_locked_pct=90,
+                scout_interval_sec=45,
+                **fast,
+                **be3,
+                **early_trail,
+                **guard,
+                min_volume_1h_usd=80000,
+                min_liquidity_usd=30000,
+            ),
+        ]
+    )
+
     for cfg in specs:
         write(cfg)
 
